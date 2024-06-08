@@ -26,7 +26,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     private PatientRepository patientRepository;
     @Override
     public List<ScheduleEntity> getAllSchedule(Long doctorId, String date) {
-        return scheduleRepository.findAllByDoctorIdAndDate(doctorId, date);
+        return scheduleRepository.findAllByDoctorIdAndDate(doctorId, date).stream().filter(scheduleEntity -> scheduleEntity.getStatus().equals("Unavailable")).toList();
     }
 
     @Override
@@ -48,6 +48,12 @@ public class ScheduleServiceImpl implements ScheduleService {
                 appointmentEntity.setEndTime(date.getHour() + ":" + date.getMinute());
             }
             if (status.equals("waiting")) {
+                ScheduleEntity scheduleEntity = new ScheduleEntity();
+                scheduleEntity.setDoctorId(appointmentEntity.getDoctorId());
+                scheduleEntity.setDate(appointmentEntity.getDate());
+                scheduleEntity.setTime(appointmentEntity.getStartTime());
+                scheduleEntity.setStatus("Unavailable");
+                scheduleRepository.save(scheduleEntity);
                 String dateAppointment = appointmentEntity.getDate();
                 String timeAppointment = appointmentEntity.getStartTime();
                 List<AppointmentEntity> appointmentEntities = appointmentRepository.getAllByDoctorId(appointmentEntity.getDoctorId());

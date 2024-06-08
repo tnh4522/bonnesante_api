@@ -1,13 +1,8 @@
 package org.example.bonnesante_api.Service.implement;
 
-import org.example.bonnesante_api.Entity.AppointmentEntity;
-import org.example.bonnesante_api.Entity.DoctorEntity;
-import org.example.bonnesante_api.Entity.PatientEntity;
-import org.example.bonnesante_api.Entity.ScheduleEntity;
-import org.example.bonnesante_api.Repository.AppointmentRepository;
-import org.example.bonnesante_api.Repository.DoctorRepository;
-import org.example.bonnesante_api.Repository.PatientRepository;
-import org.example.bonnesante_api.Repository.ScheduleRepository;
+import com.google.gson.JsonParser;
+import org.example.bonnesante_api.Entity.*;
+import org.example.bonnesante_api.Repository.*;
 import org.example.bonnesante_api.Service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +23,8 @@ public class PatientServiceImpl implements PatientService {
     private ScheduleRepository scheduleRepository;
     @Autowired
     private AppointmentRepository appointmentRepository;
+    @Autowired
+    private RegisterDoctorRepository registerDoctorRepository;
     @Override
     public PatientEntity savePatient(PatientEntity patient) {
         return patientRepository.save(patient);
@@ -56,29 +53,35 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientEntity registerDoctor(Long id, String doctorId) {
         PatientEntity patientEntity = patientRepository.findById(id).get();
+
+        Gson gson = new Gson();
+        JsonObject jsonObject = JsonParser.parseString(doctorId).getAsJsonObject();
+        JsonArray doctorIdsArray = jsonObject.getAsJsonArray("doctorIds");
+
+        for (int i = 0; i < doctorIdsArray.size(); i++) {
+            int doctorIdInt = doctorIdsArray.get(i).getAsInt();
+
+            RegisterDoctorEntity registerDoctorEntity = new RegisterDoctorEntity();
+            registerDoctorEntity.setDoctorId((long)doctorIdInt);
+            registerDoctorEntity.setPatientId(id);
+            registerDoctorEntity.setStatus("pending");
+
+            registerDoctorRepository.save(registerDoctorEntity);
+        }
+
         patientEntity.setListDoctor(doctorId);
         return patientRepository.save(patientEntity);
     }
 
     @Override
     public List<DoctorEntity> getDoctorList(Long id) {
-        String doctorList = patientRepository.findById(id).get().getListDoctor();
-
-        if (doctorList == null) {
-            return null;
-        }
-
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(doctorList, JsonObject.class);
-        JsonArray doctorIdsArray = jsonObject.getAsJsonArray("doctorIds");
-
-        int[] doctorIds = new int[doctorIdsArray.size()];
+        List<RegisterDoctorEntity> registerDoctorEntities = registerDoctorRepository.findByPatientId(id);
         List<DoctorEntity> doctorEntities = new ArrayList<>();
-
-        for (int i = 0; i < doctorIdsArray.size(); i++) {
-            doctorIds[i] = doctorIdsArray.get(i).getAsInt();
-            assert false;
-            doctorEntities.add(doctorRepository.findById((long)doctorIds[i]).get());
+        for (RegisterDoctorEntity registerDoctorEntity : registerDoctorEntities) {
+            if (registerDoctorEntity.getStatus().equals("registered")) {
+                DoctorEntity doctorEntity = doctorRepository.findById(registerDoctorEntity.getDoctorId()).get();
+                doctorEntities.add(doctorEntity);
+            }
         }
 
         return doctorEntities;
@@ -91,7 +94,7 @@ public class PatientServiceImpl implements PatientService {
             scheduleEntity.setDoctorId(doctorId);
             scheduleEntity.setDate(date);
             scheduleEntity.setTime(time);
-            scheduleEntity.setStatus("Unavailable");
+            scheduleEntity.setStatus("Available");
             long scheduleID = scheduleRepository.save(scheduleEntity).getId();
 
             AppointmentEntity appointmentEntity = new AppointmentEntity();

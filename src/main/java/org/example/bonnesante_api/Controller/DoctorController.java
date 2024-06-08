@@ -1,8 +1,6 @@
 package org.example.bonnesante_api.Controller;
 
-import org.example.bonnesante_api.Entity.AppointmentEntity;
-import org.example.bonnesante_api.Entity.DoctorEntity;
-import org.example.bonnesante_api.Entity.ScheduleEntity;
+import org.example.bonnesante_api.Entity.*;
 import org.example.bonnesante_api.Service.DoctorService;
 import org.example.bonnesante_api.Service.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,5 +43,15 @@ public class DoctorController {
     public ResponseEntity<AppointmentEntity> updateAppointmentStatus(@PathVariable Long id, @RequestBody String status) {
         status = status.substring(0, status.length() - 1);
         return ResponseEntity.ok(scheduleService.updateAppointmentStatus(id, status));
+    }
+
+    @GetMapping("/{id}/patient")
+    public ResponseEntity<List<RegisterDoctorEntity>> getPatientByDoctorId(@PathVariable Long id) {
+        return ResponseEntity.ok(doctorService.getPatientByDoctorId(id));
+    }
+
+    @PostMapping("/{id}/patient/update/register")
+    public ResponseEntity<RegisterDoctorEntity> updaterRegisterPatient(@PathVariable Long id, @RequestBody RegisterDoctorEntity registerDoctorEntity) {
+        return ResponseEntity.ok(doctorService.updateRegisterPatient(id, registerDoctorEntity));
     }
 }
