@@ -31,7 +31,6 @@ public class AppointmentEntity {
     private String status = "Scheduled";
 
     @OneToOne
-
     private DoctorEntity doctorEntity;
 
     @OneToOne
