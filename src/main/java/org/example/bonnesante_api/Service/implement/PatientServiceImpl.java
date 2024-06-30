@@ -108,4 +108,9 @@ public class PatientServiceImpl implements PatientService {
         }
         return true;
     }
+
+    @Override
+    public PatientEntity getPatientByHealthID(String healthID) {
+        return patientRepository.findByHealthId(healthID);
+    }
 }

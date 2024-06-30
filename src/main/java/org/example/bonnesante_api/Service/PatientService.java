@@ -22,4 +22,6 @@ public interface PatientService {
     List<DoctorEntity> getDoctorList(Long id);
 
     boolean scheduleAppointment(Long patientId, Long doctorId, String date, List<String> timeSlot);
+
+    PatientEntity getPatientByHealthID(String healthID);
 }

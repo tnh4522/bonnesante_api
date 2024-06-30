@@ -6,4 +6,6 @@ public interface UserService {
     UserEntity findByUsernameAndPassword(String username, String password);
 
     UserEntity saveUser(UserEntity user);
+
+    UserEntity getUserByID(long id);
 }

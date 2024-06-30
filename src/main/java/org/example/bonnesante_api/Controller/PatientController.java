@@ -3,14 +3,17 @@ package org.example.bonnesante_api.Controller;
 import org.example.bonnesante_api.Entity.AppointmentEntity;
 import org.example.bonnesante_api.Entity.DoctorEntity;
 import org.example.bonnesante_api.Entity.PatientEntity;
+import org.example.bonnesante_api.Entity.UserEntity;
 import org.example.bonnesante_api.Service.AppointmentService;
 import org.example.bonnesante_api.Service.PatientService;
+import org.example.bonnesante_api.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -24,6 +27,9 @@ public class PatientController {
     @Autowired
     private AppointmentService appointmentService;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping("{id}")
     public ResponseEntity<PatientEntity> getPatientByUserId(@PathVariable Long id) {
         PatientEntity patientEntity = patientService.getPatientByUserId(id);
@@ -32,6 +38,17 @@ public class PatientController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping("/register/healthID/{healthID}")
+    public ResponseEntity<ArrayList<Object>> registerByHealthID(@PathVariable String healthID) {
+        PatientEntity patientEntity = patientService.getPatientByHealthID(healthID);
+        UserEntity userEntity = userService.getUserByID(patientEntity.getUserId());
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(patientEntity);
+        userEntity.setPassword("");
+        arrayList.add(userEntity);
+        return ResponseEntity.ok(arrayList);
     }
 
     @PostMapping("/save")
